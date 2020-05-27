@@ -1,4 +1,4 @@
-package com.amazonaws.samples;
+package com.amazonaws.pokemon;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +13,7 @@ import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
 
-public class CreateNewItem {
+public class CreateNewPokeItem {
 
     public static void main(String[] args) throws Exception {
 
@@ -38,25 +38,21 @@ public class CreateNewItem {
 
         DynamoDB dynamoDB = new DynamoDB(client);
 
-        Table table = dynamoDB.getTable("AzMovies");
+        Table table = dynamoDB.getTable("PokemonKetchemAll");
 
-        int year = 2015;
-        String title = "DuBOIS";
-
-        final Map<String, Object> infoMap = new HashMap<String, Object>();
-        infoMap.put("plot", "Nothing happens at all.");
-        infoMap.put("rating", 10);
+        String type = "fire";
+        String title = "Charmander";
 
         try {
             System.out.println("Adding a new item...");
             PutItemOutcome outcome = table
-                .putItem(new Item().withPrimaryKey("year", year, "title", title).withMap("info", infoMap));
+                .putItem(new Item().withPrimaryKey("type", type, "name", title));
 
             System.out.println("PutItem succeeded:\n" + outcome.getPutItemResult());
 
         }
         catch (Exception e) {
-            System.err.println("Unable to add item: " + year + " " + title);
+            System.err.println("Unable to add item: " + type + " " + title);
             System.err.println(e.getMessage());
         }
 

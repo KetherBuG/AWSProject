@@ -1,7 +1,6 @@
-package com.amazonaws.samples;
+package com.amazonaws.pokemon;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
@@ -9,11 +8,13 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
+import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
+import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
+import com.amazonaws.services.dynamodbv2.model.ReturnValue;
 
-public class CreateNewItem {
+public class UpDatePokeItems {
 
     public static void main(String[] args) throws Exception {
 
@@ -38,27 +39,26 @@ public class CreateNewItem {
 
         DynamoDB dynamoDB = new DynamoDB(client);
 
-        Table table = dynamoDB.getTable("AzMovies");
+        Table table = dynamoDB.getTable("PokemonKetchemAll");
 
         int year = 2015;
-        String title = "DuBOIS";
+        String title = "BOIS";
 
-        final Map<String, Object> infoMap = new HashMap<String, Object>();
-        infoMap.put("plot", "Nothing happens at all.");
-        infoMap.put("rating", 10);
+        UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey("year", year, "title", title)
+            .withUpdateExpression("set info.rating = :r, info.plot=:p, info.actors=:a")
+            .withValueMap(new ValueMap().withNumber(":r", 5.9).withString(":p", "Bruh all at once.")
+                .withList(":a", Arrays.asList("u", "w", "u")))
+            .withReturnValues(ReturnValue.UPDATED_NEW);
 
         try {
-            System.out.println("Adding a new item...");
-            PutItemOutcome outcome = table
-                .putItem(new Item().withPrimaryKey("year", year, "title", title).withMap("info", infoMap));
-
-            System.out.println("PutItem succeeded:\n" + outcome.getPutItemResult());
+            System.out.println("Updating the item...");
+            UpdateItemOutcome outcome = table.updateItem(updateItemSpec);
+            System.out.println("UpdateItem succeeded:\n" + outcome.getItem().toJSONPretty());
 
         }
         catch (Exception e) {
-            System.err.println("Unable to add item: " + year + " " + title);
+            System.err.println("Unable to update item: " + year + " " + title);
             System.err.println(e.getMessage());
         }
-
     }
 }
