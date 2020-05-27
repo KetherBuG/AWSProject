@@ -41,7 +41,7 @@ public class CreateNewItem {
         Table table = dynamoDB.getTable("AzMovies");
 
         int year = 2015;
-        String title = "BOIS";
+        String title = "BBBOIS";
 
         final Map<String, Object> infoMap = new HashMap<String, Object>();
         infoMap.put("plot", "Nothing happens at all.");
