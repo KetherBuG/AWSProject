@@ -1,7 +1,6 @@
-package com.amazonaws.samples;
+package com.amazonaws.pokemon;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Iterator;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
@@ -10,10 +9,14 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
+import com.amazonaws.services.dynamodbv2.document.ItemCollection;
+import com.amazonaws.services.dynamodbv2.document.ScanOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.spec.ScanSpec;
+import com.amazonaws.services.dynamodbv2.document.utils.NameMap;
+import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 
-public class CreateNewItem {
+public class ScanPoke {
 
     public static void main(String[] args) throws Exception {
 
@@ -35,33 +38,27 @@ public class CreateNewItem {
            	.withCredentials(credentialsProvider)
                .withRegion("us-west-2")
                .build();
-
         DynamoDB dynamoDB = new DynamoDB(client);
 
-        Table table = dynamoDB.getTable("AzMovies");
+        Table table = dynamoDB.getTable("PokemonKetchemAll");
 
-        int year = 2015;
-
-
-        String title = "DuBOIS";
-
-
-        final Map<String, Object> infoMap = new HashMap<String, Object>();
-        infoMap.put("plot", "Nothing happens at all.");
-        infoMap.put("rating", 10);
+        ScanSpec scanSpec = new ScanSpec().withProjectionExpression("#yr, title, info.rating")
+            .withFilterExpression("#yr between :start_yr and :end_yr").withNameMap(new NameMap().with("#yr", "year"))
+            .withValueMap(new ValueMap().withNumber(":start_yr", 1950).withNumber(":end_yr", 1959));
 
         try {
-            System.out.println("Adding a new item...");
-            PutItemOutcome outcome = table
-                .putItem(new Item().withPrimaryKey("year", year, "title", title).withMap("info", infoMap));
+            ItemCollection<ScanOutcome> items = table.scan(scanSpec);
 
-            System.out.println("PutItem succeeded:\n" + outcome.getPutItemResult());
+            Iterator<Item> iter = items.iterator();
+            while (iter.hasNext()) {
+                Item item = iter.next();
+                System.out.println(item.toString());
+            }
 
         }
         catch (Exception e) {
-            System.err.println("Unable to add item: " + year + " " + title);
+            System.err.println("Unable to scan the table:");
             System.err.println(e.getMessage());
         }
-
     }
 }

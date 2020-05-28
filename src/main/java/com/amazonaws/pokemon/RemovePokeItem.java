@@ -1,7 +1,4 @@
-package com.amazonaws.samples;
-
-import java.util.HashMap;
-import java.util.Map;
+package com.amazonaws.pokemon;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
@@ -9,11 +6,12 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
+import com.amazonaws.services.dynamodbv2.document.PrimaryKey;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
+import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 
-public class CreateNewItem {
+public class RemovePokeItem {
 
     public static void main(String[] args) throws Exception {
 
@@ -35,33 +33,28 @@ public class CreateNewItem {
            	.withCredentials(credentialsProvider)
                .withRegion("us-west-2")
                .build();
-
         DynamoDB dynamoDB = new DynamoDB(client);
 
-        Table table = dynamoDB.getTable("AzMovies");
+        Table table = dynamoDB.getTable("PokemonKetchemAll");
 
         int year = 2015;
+        //intentionally opt out
+        String title = "";
 
+        DeleteItemSpec deleteItemSpec = new DeleteItemSpec()
+            .withPrimaryKey(new PrimaryKey("year", year, "title", title)).withConditionExpression("info.rating <= :val")
+            .withValueMap(new ValueMap().withNumber(":val", 5));
 
-        String title = "DuBOIS";
-
-
-        final Map<String, Object> infoMap = new HashMap<String, Object>();
-        infoMap.put("plot", "Nothing happens at all.");
-        infoMap.put("rating", 10);
+        // Conditional delete (we expect this to fail)
 
         try {
-            System.out.println("Adding a new item...");
-            PutItemOutcome outcome = table
-                .putItem(new Item().withPrimaryKey("year", year, "title", title).withMap("info", infoMap));
-
-            System.out.println("PutItem succeeded:\n" + outcome.getPutItemResult());
-
+            System.out.println("Attempting a conditional delete...");
+            table.deleteItem(deleteItemSpec);
+            System.out.println("DeleteItem succeeded");
         }
         catch (Exception e) {
-            System.err.println("Unable to add item: " + year + " " + title);
+            System.err.println("Unable to delete item: " + year + " " + title);
             System.err.println(e.getMessage());
         }
-
     }
 }
